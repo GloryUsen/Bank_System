@@ -17,9 +17,6 @@ public class AccountUtils {
          *
          */
 
-
-
-
         Year currentYear = Year.now();
         int min = 100000;
         int max = 999999;

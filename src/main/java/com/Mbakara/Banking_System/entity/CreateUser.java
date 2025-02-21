@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "bank_users")
 
-public class BankUser {
+public class CreateUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

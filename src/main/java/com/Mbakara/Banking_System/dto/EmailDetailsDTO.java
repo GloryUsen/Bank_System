@@ -6,14 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 
-
-public class UserBankResponseDTO {
-
-    private String responseCode;
-    private String responseMessage;
-    private AccountInfo accountInfo;
+public class EmailDetailsDTO {
+    private String recipient;
+    private String messageBody;
+    private String subject;
+    private String attachment;
 }
