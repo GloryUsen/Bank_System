@@ -1,10 +1,18 @@
 package com.Mbakara.Banking_System.service;
 
-import com.Mbakara.Banking_System.dto.BankUserRequestDTO;
-import com.Mbakara.Banking_System.dto.UserBankResponseDTO;
+import com.Mbakara.Banking_System.dto.*;
+import org.springframework.stereotype.Service;
 
+@Service
 public interface CreateUserService {
 
     UserBankResponseDTO creatAccount(BankUserRequestDTO bankUserRequestDTO);
-    UserBankResponseDTO balanceEnquiry(BankUserRequestDTO bankUserRequestDTO);
+
+    // Balance Enquiry gives information about the user.
+    UserBankResponseDTO balanceEnquiry(CustomerEnquiryRequestDTO customerEnquiryRequestDTO);
+    String nameEnquiry(CustomerEnquiryRequestDTO request);
+    UserBankResponseDTO creditAccount(CreditDebitRequestDTO request);
+    UserBankResponseDTO debitAccount(CreditDebitRequestDTO request);
+    UserBankResponseDTO transferCash(TransferRequestDTO request);
+
 }

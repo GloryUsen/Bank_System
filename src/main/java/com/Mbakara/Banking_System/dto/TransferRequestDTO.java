@@ -1,5 +1,6 @@
 package com.Mbakara.Banking_System.dto;
 
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,22 +14,20 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class AccountInfo {
+public class TransferRequestDTO {
 
     @Schema(
-            name = "User Account Name"
+            name = "SourceAccountNumber"
     )
-    private String accountName;
+    private String sourceAccountNumber;
 
     @Schema(
-            name = "User Account Balance"
+            name = "Destination For Transaction"
     )
-    private BigDecimal accountBalance;
+    private String destinationAccountNumber;
 
     @Schema(
-            name = "User Account Number"
+            name = "Amount For Transaction"
     )
-    private String accountNumber;
-
-
+    private BigDecimal amount;
 }

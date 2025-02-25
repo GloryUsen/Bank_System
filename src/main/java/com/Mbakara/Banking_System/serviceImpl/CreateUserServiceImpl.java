@@ -1,24 +1,28 @@
 package com.Mbakara.Banking_System.serviceImpl;
 
-import com.Mbakara.Banking_System.dto.AccountInfo;
-import com.Mbakara.Banking_System.dto.BankUserRequestDTO;
-import com.Mbakara.Banking_System.dto.EmailDetailsDTO;
-import com.Mbakara.Banking_System.dto.UserBankResponseDTO;
+import com.Mbakara.Banking_System.dto.*;
 import com.Mbakara.Banking_System.entity.CreateUser;
 import com.Mbakara.Banking_System.repository.CreateUserRepository;
 import com.Mbakara.Banking_System.service.CreateUserService;
 import com.Mbakara.Banking_System.service.EmailService;
+import com.Mbakara.Banking_System.service.TransactionService;
 import com.Mbakara.Banking_System.util.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
-@Service
+@Component
 public class CreateUserServiceImpl implements CreateUserService {
 
     @Autowired
-    CreateUserRepository bankUserRepository;
+    CreateUserRepository createUserRepository;
+
+
+    @Autowired
+    TransactionService transactionService;
 
     // Will need the mailService sender, here for the user, so it has to be autowired below.
     @Autowired
@@ -32,7 +36,7 @@ public class CreateUserServiceImpl implements CreateUserService {
 
         // This first Step is to check if that current user you are about to create an account for actually exist
 
-        if (bankUserRepository.existsByEmail(bankUserRequestDTO.getEmail())) { /** Returning a custom message, if the current userExistByEmail,
+        if (createUserRepository.existsByEmail(bankUserRequestDTO.getEmail())) { /** Returning a custom message, if the current userExistByEmail,
          (i.e, if the email exist, you return the Custom errorCode/Message.
          **/
         return UserBankResponseDTO.builder()
@@ -66,22 +70,23 @@ public class CreateUserServiceImpl implements CreateUserService {
                 .status("ACTIVE")
                 .build();
 
-        CreateUser saveUser = bankUserRepository.save(newUser);
+        CreateUser saveUser = createUserRepository.save(newUser);
 
         /** After creating a newUer and saving the user,
-         * I'm calling the method of emailSender Alert.
+         * I'm calling the method of emailSender Alert. So to send emailAlert
          * Also creating an object of email details below too.
          */
 
         EmailDetailsDTO emailDetailsDTO = EmailDetailsDTO.builder()
                // .recipient(saveUser.getEmail())// The recipient of the email is going to be the saved User.getEmail(Who the email is sent to).
                // .recipient("gloryanwana39@gmail.com")
-                .recipient(bankUserRequestDTO.getEmail())
+                //.recipient(bankUserRequestDTO.getEmail())
+                .recipient(saveUser.getEmail())
 
                 .subject("ACCOUNT CREATION")
                 .messageBody("Congratulations! Your Account Has Been Successfully Created." +
-                        "\n Account Details: \n Account Name: " + bankUserRequestDTO.getFirstName() + " "
-                + bankUserRequestDTO.getLastName() + " " + bankUserRequestDTO.getOtherName() + " \nAccount Number: "
+                        "\n Account Details: \n Account Name: " + saveUser.getFirstName() + " "
+                + saveUser.getLastName() + " " + saveUser.getOtherName() + " \nAccount Number: "
                         + saveUser.getAccountNumber())
                 .build();
 
@@ -104,12 +109,202 @@ public class CreateUserServiceImpl implements CreateUserService {
     }
 
     @Override
-    public UserBankResponseDTO balanceEnquiry(BankUserRequestDTO bankUserRequestDTO) {
-        return null;
+    public UserBankResponseDTO balanceEnquiry(CustomerEnquiryRequestDTO requestDTO) {
+        Boolean isAccountExist = createUserRepository.existsByAccountNumber(requestDTO.getAccountNumber());
+        if (!isAccountExist){
+            return UserBankResponseDTO.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+        CreateUser foundUser = createUserRepository.findByAccountNumber(requestDTO.getAccountNumber());
+        return UserBankResponseDTO.builder()
+                .responseCode(AccountUtils.ACCOUNT_FOUND_CODE)
+                .responseMessage(AccountUtils.ACCOUNT_FOUND_SUCCESS)
+                .accountInfo(AccountInfo.builder() // Trying to build acctEnquiry, so we return some few inform about the acct.
+                        .accountBalance(foundUser.getAccountBalance()) // This account balance will be getting from the found User.
+                        .accountNumber(requestDTO.getAccountNumber()) // Use same accountNo provided from line 114.
+                        .accountName(foundUser.getFirstName() + " " + foundUser.getLastName()+ " "+ foundUser.getOtherName())
+                        .build())
+                .build();
+    }
+    @Override
+    public String nameEnquiry(CustomerEnquiryRequestDTO request) {
+       boolean isAccountExist = createUserRepository.existsByAccountNumber(request.getAccountNumber());
+       if (!isAccountExist){
+           return AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE;
+       }
+
+        CreateUser foundUser = createUserRepository.findByAccountNumber(request.getAccountNumber());
+       return foundUser.getFirstName() + " " + foundUser.getLastName() + " " + foundUser.getOtherName();
     }
 
-//    @Override
-//    public UserBankResponseDTO registerUser(BankUserRequestDTO bankUserRequestDTO) {
-//        return null;
-//    }
+    @Override
+    public UserBankResponseDTO creditAccount(CreditDebitRequestDTO request) {
+        boolean isAccountExist = createUserRepository.existsByAccountNumber(request.getAccountNumber());
+        if (!isAccountExist){
+            return UserBankResponseDTO.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+        /** If the above account doesn't exist, you retrieve the correct user from the db, so the retrieved account will be from the CreditDTO
+         *  request, which will give the particular accountNo to a specific user.
+         *  Next thing will be to update the information of the user.
+         */
+
+        CreateUser userToCredit = createUserRepository.findByAccountNumber(request.getAccountNumber());
+        userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(request.getAmount()));
+        createUserRepository.save(userToCredit);
+
+        //Building an Object of Transaction to save each transaction
+        TransactionsDTO customer1 = TransactionsDTO.builder()
+                .accountNumber(userToCredit.getAccountNumber())// The acctNo will be the userAcct to credit.
+                .transactionType("CREDIT")
+                .amountInvolve(request.getAmount())// AMount will be gotten from the request
+                .build();
+
+        transactionService.saveTransaction(customer1);
+
+        return UserBankResponseDTO.builder()
+                .responseCode(AccountUtils.ACCOUNT_CREDITED_SUCCESS_CODE)
+                .responseMessage(AccountUtils.ACCOUNT_CREDITED_SUCCESS_MESSAGE)
+                .accountInfo(AccountInfo.builder()
+                        .accountName(userToCredit.getFirstName() + " " + userToCredit.getLastName() + " " + userToCredit.getOtherName())
+                        .accountBalance(userToCredit.getAccountBalance())
+                        .accountNumber(request.getAccountNumber())
+                        .build())
+                .build();
+    }
+
+    @Override
+    public UserBankResponseDTO debitAccount(CreditDebitRequestDTO request) {
+        /** To debit an account,
+              .Check if the account exist
+                Check if the intended debited amount is not more than the current balance
+         */
+
+        boolean isAccountExist = createUserRepository.existsByAccountNumber(request.getAccountNumber());
+        if (!isAccountExist){
+            return UserBankResponseDTO.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+        CreateUser userToDebit = createUserRepository.findByAccountNumber(request.getAccountNumber());
+        BigInteger availableBalance = userToDebit.getAccountBalance().toBigInteger();
+        BigInteger debitAmount = request.getAmount().toBigInteger();
+        if (availableBalance.intValue() < debitAmount.intValue()){
+            return UserBankResponseDTO.builder()
+                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
+                    .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+
+
+        else {
+            userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(request.getAmount()));
+            createUserRepository.save(userToDebit);
+
+            TransactionsDTO customer2 = TransactionsDTO.builder()
+                    .accountNumber(userToDebit.getAccountNumber())
+                    .transactionType("DEBIT")
+                    .amountInvolve(request.getAmount())
+                    .build();
+
+            transactionService.saveTransaction(customer2);
+            return UserBankResponseDTO.builder()
+                    .responseCode(AccountUtils.ACCOUNT_DEBITED_SUCCESS_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_DEBITED_SUCCESS_MESSAGE)
+                    .accountInfo(AccountInfo.builder()
+                            .accountNumber(request.getAccountNumber())
+                            .accountName(userToDebit.getFirstName()+ " " + userToDebit.getLastName()+ " " +
+                                    userToDebit.getOtherName())
+                            .accountBalance(userToDebit.getAccountBalance())
+                            .build())
+                    .build();
+        }
+
+
+    }
+
+    @Override
+    public UserBankResponseDTO transferCash(TransferRequestDTO request) {
+        // Check if the destinationAccount Exist, since the sourceAccount is already existing
+        boolean isDestinationAccountExist = createUserRepository.existsByAccountNumber(request.getDestinationAccountNumber());
+
+        if (!isDestinationAccountExist){
+            return UserBankResponseDTO.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+       CreateUser sourceAccountToDebit = createUserRepository.findByAccountNumber(request.getSourceAccountNumber());
+        // To debit the sourceAccount, do a check to see if the amount is more than the current balance
+        if (request.getAmount().compareTo(sourceAccountToDebit.getAccountBalance()) > 0){
+            return UserBankResponseDTO.builder()
+                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
+                    .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+        //Perform the debit logic, and save the current User.
+        sourceAccountToDebit.setAccountBalance(sourceAccountToDebit.getAccountBalance().subtract(request.getAmount()));
+        String sourceUserName = sourceAccountToDebit.getFirstName() + " " + sourceAccountToDebit.getLastName()
+                + " " + sourceAccountToDebit.getOtherName();
+        createUserRepository.save(sourceAccountToDebit);
+
+        // Performing EmailAlert logic for debiting
+        EmailDetailsDTO debitAlert = EmailDetailsDTO.builder()
+                .recipient("DEBIT ALERT ")
+                .subject(sourceAccountToDebit.getEmail())
+                .messageBody("The Sum of " + request.getAmount() + " has been deducted from your account! Your current balance is"
+                        + sourceAccountToDebit.getAccountBalance())
+                .build();
+        emailService.sendEmailAlert(debitAlert);
+
+        //Credit the destinationAccount
+        CreateUser destinationAccountCredited = createUserRepository.findByAccountNumber(request.getDestinationAccountNumber());
+//        destinationAccountCredited.setAccountBalance(destinationAccountCredited.getAccountBalance().add(request.getAmount()));
+        String recipientUserName = destinationAccountCredited.getFirstName() + " " + destinationAccountCredited.getLastName()
+                + " " + destinationAccountCredited.getOtherName();
+        createUserRepository.save(destinationAccountCredited);
+
+        // Performing EmailAlert logic for crediting
+        EmailDetailsDTO creditAlert = EmailDetailsDTO.builder()
+                .recipient("CREDIT ALERT")
+                .subject(destinationAccountCredited.getEmail())
+                .messageBody("The Sum of " + request.getAmount() + " has been sent to your account from" +  sourceUserName + " Your current balance is "
+                        + destinationAccountCredited.getAccountBalance())
+                .build();
+
+        emailService.sendEmailAlert(creditAlert);
+
+        TransactionsDTO customer3 = TransactionsDTO.builder()
+                .accountNumber(destinationAccountCredited.getAccountNumber())
+                .transactionType("DEBIT")
+                .amountInvolve(request.getAmount())
+                .build();
+
+        transactionService.saveTransaction(customer3);
+
+        return UserBankResponseDTO.builder()
+                .responseCode(AccountUtils.TRANSFER_SUCCESS_CODE)
+                .responseMessage(AccountUtils.TRANSFER_SUCCESS_MESSAGE)
+                .build();
+
+    }
+
+
 }

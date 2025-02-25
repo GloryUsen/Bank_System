@@ -7,22 +7,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-@Service
-
+@Component
 public class EmailServiceImpl implements EmailService {
 
     @Autowired
     private JavaMailSender javaMailSender;
 
     @Value("${spring.mail.username}") // With this, one will have access to the loginUser of SMTP server(Simple mail transfer protocol)
-    private String senderEmail; // Global variable so it can be called elsewhere
+    private String senderEmail; //Instance variable with Global access,     so it can be called elsewhere
 
     @Override
     public void sendEmailAlert(EmailDetailsDTO emailDetailsDTO) {
         // indicated error
-        if (emailDetailsDTO.getRecipient() == null || emailDetailsDTO.getRecipient().isBlank()) {
+        if (emailDetailsDTO.getRecipient() == null || emailDetailsDTO.getRecipient().trim().isEmpty()) {
             System.out.println("Error: Recipient email is null or empty. Email not sent.");
             return;
         }
@@ -34,10 +34,11 @@ public class EmailServiceImpl implements EmailService {
             mailMessage.setSubject(emailDetailsDTO.getSubject()); // That's the subject inside a mail.
 
             javaMailSender.send(mailMessage);
-            // Login out message from my console
-            System.out.println("Mail Sent Successfully");
+            // Log  out message from my console
+           // System.out.println("Mail Sent Successfully");
         } catch (MailException e) {
-            throw new RuntimeException(e);
+            System.err.println("Failed to send email: " + e.getMessage());
+            throw new RuntimeException("Email sending failed. Please check SMTP settings.", e);
         }
     }
 }

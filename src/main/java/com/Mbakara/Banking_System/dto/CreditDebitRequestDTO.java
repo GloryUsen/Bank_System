@@ -13,22 +13,14 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class AccountInfo {
-
+public class CreditDebitRequestDTO {
     @Schema(
-            name = "User Account Name"
-    )
-    private String accountName;
-
-    @Schema(
-            name = "User Account Balance"
-    )
-    private BigDecimal accountBalance;
-
-    @Schema(
-            name = "User Account Number"
+            name = "User's AccountNumber"
     )
     private String accountNumber;
 
-
+    @Schema(
+            name = "Amount To Update"
+    )
+    private BigDecimal amount;
 }
