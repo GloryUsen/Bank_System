@@ -21,6 +21,10 @@ public class AccountUtils {
     public static final String ACCOUNT_DEBITED_SUCCESS_MESSAGE = " Account Has Been Successfully Debited";
     public static final String TRANSFER_SUCCESS_CODE = "008";
     public static final String TRANSFER_SUCCESS_MESSAGE = " Transfer Successful";
+    public static final String SOURCE_ACCOUNT_NOT_EXISTS_CODE = "009";
+    public static final String SOURCE_ACCOUNT_NOT_EXISTS_MESSAGE = "Sender's Account Not Found";
+    public static final String BALANCE_AFTER_DEDUCTION_CODE = "010";
+    public static final String BALANCE_AFTER_DEDUCTION_MESSAGE = "011";
 
 
 

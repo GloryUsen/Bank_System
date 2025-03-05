@@ -5,16 +5,18 @@ import com.Mbakara.Banking_System.service.CreateUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/user")
 @Tag(name = "Users Account Management APIs")
 public class CreateUserController {
 
     @Autowired
-    CreateUserService bankUserService;
+     CreateUserService createUserService;
 
 //    @Autowired
 //    CreditDebitRequestDTO creditDebitRequestDTO;
@@ -34,7 +36,7 @@ public class CreateUserController {
     @PostMapping("/createAccount")
     public UserBankResponseDTO createAccount(@RequestBody BankUserRequestDTO request){
         //System.out.println("hello world");
-        return bankUserService.creatAccount(request);
+        return createUserService.creatAccount(request);
 
     }
 
@@ -52,7 +54,7 @@ public class CreateUserController {
 
     @GetMapping("/balanceEnquiry")
     public UserBankResponseDTO balanceEnquiry(@RequestBody CustomerEnquiryRequestDTO request){
-        return bankUserService.balanceEnquiry(request);
+        return createUserService.balanceEnquiry(request);
 
     }
 
@@ -68,7 +70,7 @@ public class CreateUserController {
 
     @GetMapping("/nameEnquiry")
     public String nameEnquiry(@RequestBody CustomerEnquiryRequestDTO request){
-        return bankUserService.nameEnquiry(request);
+        return createUserService.nameEnquiry(request);
     }
 
     @Operation(
@@ -83,7 +85,7 @@ public class CreateUserController {
 
     @PostMapping("credit")
     public UserBankResponseDTO creditAccount(@RequestBody CreditDebitRequestDTO request){
-        return bankUserService.creditAccount(request);
+        return createUserService.creditAccount(request);
     }
 
     @Operation(
@@ -98,7 +100,7 @@ public class CreateUserController {
 
     @PostMapping("debit")
     public UserBankResponseDTO debitAccount(@RequestBody CreditDebitRequestDTO request){
-        return bankUserService.debitAccount(request);
+        return createUserService.debitAccount(request);
     }
 
     @Operation(
@@ -113,7 +115,7 @@ public class CreateUserController {
 
     @PostMapping("transfer")
     public UserBankResponseDTO transferCash(@RequestBody TransferRequestDTO request){
-        return bankUserService.transferCash(request);
+        return createUserService.transferCash(request);
     }
 
 

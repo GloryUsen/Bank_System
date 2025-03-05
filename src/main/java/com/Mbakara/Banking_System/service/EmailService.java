@@ -6,4 +6,5 @@ import org.springframework.stereotype.Service;
 @Service
 public interface EmailService {
     void sendEmailAlert(EmailDetailsDTO emailDetailsDTO);
+    void sendEmailWithAttachment(EmailDetailsDTO emailDetailsDTO);
 }

@@ -7,7 +7,9 @@ import com.Mbakara.Banking_System.service.CreateUserService;
 import com.Mbakara.Banking_System.service.EmailService;
 import com.Mbakara.Banking_System.service.TransactionService;
 import com.Mbakara.Banking_System.util.AccountUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -236,12 +238,198 @@ public class CreateUserServiceImpl implements CreateUserService {
 
     }
 
-    @Override
-    public UserBankResponseDTO transferCash(TransferRequestDTO request) {
-        // Check if the destinationAccount Exist, since the sourceAccount is already existing
-        boolean isDestinationAccountExist = createUserRepository.existsByAccountNumber(request.getDestinationAccountNumber());
+//    @Override
+//    public UserBankResponseDTO transferCash(TransferRequestDTO request) {
+//        // Check if the destinationAccount Exist, since the sourceAccount is already existing
+//        boolean isDestinationAccountExist = createUserRepository.existsByAccountNumber(request.getDestinationAccountNumber());
+//
+//        if (!isDestinationAccountExist){
+//            return UserBankResponseDTO.builder()
+//                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+//                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+//                    .accountInfo(null)
+//                    .build();
+//        }
+//
+//       CreateUser sourceAccountToDebit = createUserRepository.findByAccountNumber(request.getSourceAccountNumber());
+//        // To debit the sourceAccount, do a check to see if the amount is more than the current balance
+//        if (request.getAmount().compareTo(sourceAccountToDebit.getAccountBalance()) > 0){
+//            return UserBankResponseDTO.builder()
+//                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
+//                    .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
+//                    .accountInfo(null)
+//                    .build();
+//        }
+//
+//        //Perform the debit logic, and save the current User.
+//        sourceAccountToDebit.setAccountBalance(sourceAccountToDebit.getAccountBalance().subtract(request.getAmount()));
+//        String sourceUserName = sourceAccountToDebit.getFirstName() + " " + sourceAccountToDebit.getLastName()
+//                + " " + sourceAccountToDebit.getOtherName();
+//        createUserRepository.save(sourceAccountToDebit);
+//
+//        // Performing EmailAlert logic for debiting
+//        try {  //new
+//            EmailDetailsDTO debitAlert = EmailDetailsDTO.builder()
+//                    //.recipient("DEBIT ALERT")
+//                    .recipient(sourceAccountToDebit.getEmail())
+//                    .subject("DEBIT ALERT")
+//                    .messageBody("The Sum of " + request.getAmount() + " has been deducted from your account! Your current balance is "
+//                            + sourceAccountToDebit.getAccountBalance())
+//                    .build();
+//            emailService.sendEmailAlert(debitAlert);
+//
+//    } catch (
+//    MailException e) {
+//        System.err.println("Failed to send email: " + e.getMessage());
+//        throw new RuntimeException("Email sending failed. Please check SMTP settings.", e);
+//    }  // new
+//
+//        //Credit the destinationAccount
+//        CreateUser destinationAccountCredited = createUserRepository.findByAccountNumber(request.getDestinationAccountNumber());
+//        destinationAccountCredited.setAccountBalance(destinationAccountCredited.getAccountBalance().add(request.getAmount()));
+//        String recipientUserName = destinationAccountCredited.getFirstName() + " " + destinationAccountCredited.getLastName()
+//                + " " + destinationAccountCredited.getOtherName();
+//        createUserRepository.save(destinationAccountCredited);
+//
+//        // Performing EmailAlert logic for crediting
+//        EmailDetailsDTO creditAlert = EmailDetailsDTO.builder()
+//                .recipient(destinationAccountCredited.getEmail())
+//                .subject("CREDIT ALERT")
+//                .messageBody("The Sum of " + request.getAmount() + " has been sent to your account from " +  sourceUserName + " Your current balance is "
+//                        + destinationAccountCredited.getAccountBalance())
+//                .build();
+//
+//        emailService.sendEmailAlert(creditAlert);
+//
+//        TransactionsDTO customer3 = TransactionsDTO.builder()
+//                .accountNumber(destinationAccountCredited.getAccountNumber())
+//                .transactionType("DEBIT")
+//                .amountInvolve(request.getAmount())
+//                .build();
+//
+//        transactionService.saveTransaction(customer3);
+//
+//        return UserBankResponseDTO.builder()
+//                .responseCode(AccountUtils.TRANSFER_SUCCESS_CODE)
+//                .responseMessage(AccountUtils.TRANSFER_SUCCESS_MESSAGE)
+//                .build();
+//
+//    }
+//
 
-        if (!isDestinationAccountExist){
+
+//    @Transactional
+//    public UserBankResponseDTO transferCash(TransferRequestDTO request) {
+//        // Check if the destination account exists
+//        CreateUser destinationAccountCredited = createUserRepository.findByAccountNumber(request.getDestinationAccountNumber());
+//
+//        if (destinationAccountCredited == null) {
+//            return UserBankResponseDTO.builder()
+//                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+//                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+//                    .accountInfo(null)
+//                    .build();
+//        }
+//
+//        // Fetch source account
+//        CreateUser sourceAccountToDebit = createUserRepository.findByAccountNumber(request.getSourceAccountNumber());
+//
+//        // Check if the sourceAccount Exist
+//        if (sourceAccountToDebit == null){
+//            return UserBankResponseDTO.builder()
+//                    .responseCode(AccountUtils.SOURCE_ACCOUNT_NOT_EXISTS_CODE)
+//                    .responseMessage(AccountUtils.SOURCE_ACCOUNT_NOT_EXISTS_MESSAGE)
+//                    .accountInfo(null)
+//                    .build();
+//        }
+//
+//
+//        // Check for sufficient balance
+//        if (request.getAmount().compareTo(sourceAccountToDebit.getAccountBalance()) > 0) {
+//            return UserBankResponseDTO.builder()
+//                    .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
+//                    .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
+//                    .accountInfo(null)
+//                    .build();
+//
+//
+//
+//            // Get the Balance before Deduction
+//            String beforeBalance = sourceAccountToDebit.getAccountBalance().toString();
+//
+//            // Deducting Balance from Source Account
+//            sourceAccountToDebit.setAccountBalance(sourceAccountToDebit.getAccountBalance().subtract(request.getAmount()));
+//
+//
+//            // Save the source account balance update
+//            createUserRepository.save(sourceAccountToDebit);
+//
+//            // Get the Balance after Deduction
+//            String afterBalance = sourceAccountToDebit.getAccountBalance().toString();
+//
+//            // Return the balance details in the response.
+//            return UserBankResponseDTO.builder()
+//                    .responseCode(AccountUtils.BALANCE_AFTER_DEDUCTION_CODE)
+//                    .responseMessage(AccountUtils.BALANCE_AFTER_DEDUCTION_MESSAGE)
+//                    .accountInfo(null)
+//                    .build();
+//        }
+//
+//        // Perform the debit logic and save
+//        sourceAccountToDebit.setAccountBalance(sourceAccountToDebit.getAccountBalance().subtract(request.getAmount()));
+//        createUserRepository.save(sourceAccountToDebit);
+//
+//        // Send debit alert email
+//        try {
+//            EmailDetailsDTO debitAlert = EmailDetailsDTO.builder()
+//                    .recipient(sourceAccountToDebit.getEmail())
+//                    .subject("DEBIT ALERT")
+//                    .messageBody("The Sum of " + request.getAmount() + " has been deducted from your account! Your current balance is "
+//                            + sourceAccountToDebit.getAccountBalance())
+//                    .build();
+//            emailService.sendEmailAlert(debitAlert);
+//
+//
+//        } catch (MailException e) {
+//            throw new RuntimeException("Email sending failed. Please check SMTP settings.", e);
+//        }
+//
+//        // Perform the credit logic
+//        destinationAccountCredited.setAccountBalance(destinationAccountCredited.getAccountBalance().add(request.getAmount()));
+//        createUserRepository.save(destinationAccountCredited);
+//
+//        // Send credit alert email
+//        EmailDetailsDTO creditAlert = EmailDetailsDTO.builder()
+//                .recipient(destinationAccountCredited.getEmail())
+//                .subject("CREDIT ALERT")
+//                .messageBody("The Sum of " + request.getAmount() + " has been sent to your account from " +
+//                        sourceAccountToDebit.getFirstName() + " " + sourceAccountToDebit.getLastName() +
+//                        " Your current balance is " + destinationAccountCredited.getAccountBalance())
+//                .build();
+//
+//        emailService.sendEmailAlert(creditAlert);
+//
+//        // Save transaction history
+//        TransactionsDTO transactionRecord = TransactionsDTO.builder()
+//                .accountNumber(destinationAccountCredited.getAccountNumber())
+//                .transactionType("CREDIT")  // Corrected transaction type
+//                .amountInvolve(request.getAmount())
+//                .build();
+//
+//        transactionService.saveTransaction(transactionRecord);
+//
+//        return UserBankResponseDTO.builder()
+//                .responseCode(AccountUtils.TRANSFER_SUCCESS_CODE)
+//                .responseMessage(AccountUtils.TRANSFER_SUCCESS_MESSAGE)
+//                .build();
+//    }
+
+    @Transactional
+    public UserBankResponseDTO transferCash(TransferRequestDTO request) {
+
+        // Check if destination account exists
+        CreateUser destinationAccount = createUserRepository.findByAccountNumber(request.getDestinationAccountNumber());
+        if (destinationAccount == null) {
             return UserBankResponseDTO.builder()
                     .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
                     .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
@@ -249,9 +437,18 @@ public class CreateUserServiceImpl implements CreateUserService {
                     .build();
         }
 
-       CreateUser sourceAccountToDebit = createUserRepository.findByAccountNumber(request.getSourceAccountNumber());
-        // To debit the sourceAccount, do a check to see if the amount is more than the current balance
-        if (request.getAmount().compareTo(sourceAccountToDebit.getAccountBalance()) > 0){
+        // Check if source account exists
+        CreateUser sourceAccount = createUserRepository.findByAccountNumber(request.getSourceAccountNumber());
+        if (sourceAccount == null) {
+            return UserBankResponseDTO.builder()
+                    .responseCode(AccountUtils.SOURCE_ACCOUNT_NOT_EXISTS_CODE)  // Fixed incorrect response code
+                    .responseMessage(AccountUtils.SOURCE_ACCOUNT_NOT_EXISTS_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+        //  Check for sufficient balance
+        if (request.getAmount().compareTo(sourceAccount.getAccountBalance()) > 0) {
             return UserBankResponseDTO.builder()
                     .responseCode(AccountUtils.INSUFFICIENT_BALANCE_CODE)
                     .responseMessage(AccountUtils.INSUFFICIENT_BALANCE_MESSAGE)
@@ -259,52 +456,63 @@ public class CreateUserServiceImpl implements CreateUserService {
                     .build();
         }
 
-        //Perform the debit logic, and save the current User.
-        sourceAccountToDebit.setAccountBalance(sourceAccountToDebit.getAccountBalance().subtract(request.getAmount()));
-        String sourceUserName = sourceAccountToDebit.getFirstName() + " " + sourceAccountToDebit.getLastName()
-                + " " + sourceAccountToDebit.getOtherName();
-        createUserRepository.save(sourceAccountToDebit);
+        // Save balance before and after deduction
+        String beforeBalance = sourceAccount.getAccountBalance().toString();
 
-        // Performing EmailAlert logic for debiting
-        EmailDetailsDTO debitAlert = EmailDetailsDTO.builder()
-                .recipient("DEBIT ALERT ")
-                .subject(sourceAccountToDebit.getEmail())
-                .messageBody("The Sum of " + request.getAmount() + " has been deducted from your account! Your current balance is"
-                        + sourceAccountToDebit.getAccountBalance())
-                .build();
-        emailService.sendEmailAlert(debitAlert);
+        // Deduct balance from source account
+        sourceAccount.setAccountBalance(sourceAccount.getAccountBalance().subtract(request.getAmount()));
+        createUserRepository.save(sourceAccount);
 
-        //Credit the destinationAccount
-        CreateUser destinationAccountCredited = createUserRepository.findByAccountNumber(request.getDestinationAccountNumber());
-//        destinationAccountCredited.setAccountBalance(destinationAccountCredited.getAccountBalance().add(request.getAmount()));
-        String recipientUserName = destinationAccountCredited.getFirstName() + " " + destinationAccountCredited.getLastName()
-                + " " + destinationAccountCredited.getOtherName();
-        createUserRepository.save(destinationAccountCredited);
+        String afterBalance = sourceAccount.getAccountBalance().toString();  // Balance after deduction
 
-        // Performing EmailAlert logic for crediting
-        EmailDetailsDTO creditAlert = EmailDetailsDTO.builder()
-                .recipient("CREDIT ALERT")
-                .subject(destinationAccountCredited.getEmail())
-                .messageBody("The Sum of " + request.getAmount() + " has been sent to your account from" +  sourceUserName + " Your current balance is "
-                        + destinationAccountCredited.getAccountBalance())
-                .build();
+        // Perform credit logic
+        destinationAccount.setAccountBalance(destinationAccount.getAccountBalance().add(request.getAmount()));
+        createUserRepository.save(destinationAccount);
 
-        emailService.sendEmailAlert(creditAlert);
+        // Send debit alert email (but don't fail transaction if email fails)
+        try {
+            emailService.sendEmailAlert(EmailDetailsDTO.builder()
+                    .recipient(sourceAccount.getEmail())
+                    .subject("DEBIT ALERT")
+                    .messageBody("The sum of " + request.getAmount() + " has been deducted from your account. Your current balance is " + sourceAccount.getAccountBalance())
+                    .build());
+        } catch (MailException e) {
+            System.err.println("Failed to send debit email. Continuing transaction...");
+        }
 
-        TransactionsDTO customer3 = TransactionsDTO.builder()
-                .accountNumber(destinationAccountCredited.getAccountNumber())
+        //  Send credit alert email
+        try {
+            emailService.sendEmailAlert(EmailDetailsDTO.builder()
+                    .recipient(destinationAccount.getEmail())
+                    .subject("CREDIT ALERT")
+                    .messageBody("The sum of " + request.getAmount() + " has been credited to your account from " +
+                            sourceAccount.getFirstName() + " " + sourceAccount.getLastName() +
+                            ". Your current balance is " + destinationAccount.getAccountBalance())
+                    .build());
+        } catch (MailException e) {
+            System.err.println("Failed to send credit email. Continuing transaction...");
+        }
+
+        // Save transaction history
+        transactionService.saveTransaction(TransactionsDTO.builder()
+                .accountNumber(destinationAccount.getAccountNumber())
+                .transactionType("CREDIT")
+                .amountInvolve(request.getAmount())
+                .build());
+
+        transactionService.saveTransaction(TransactionsDTO.builder()
+                .accountNumber(sourceAccount.getAccountNumber())
                 .transactionType("DEBIT")
                 .amountInvolve(request.getAmount())
-                .build();
+                .build());
 
-        transactionService.saveTransaction(customer3);
-
+        // Return success response with balance details
         return UserBankResponseDTO.builder()
                 .responseCode(AccountUtils.TRANSFER_SUCCESS_CODE)
                 .responseMessage(AccountUtils.TRANSFER_SUCCESS_MESSAGE)
+                .accountInfo(null)
                 .build();
-
     }
-
-
 }
+
+

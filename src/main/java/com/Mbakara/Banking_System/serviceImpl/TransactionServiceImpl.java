@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 
 @Component
 public class TransactionServiceImpl implements TransactionService{
@@ -22,6 +24,8 @@ public class TransactionServiceImpl implements TransactionService{
                 .accountNumber(transactionsDTO.getAccountNumber())
                 .amount(transactionsDTO.getAmountInvolve())
                 .status("SUCCESS")
+                .createdAt(LocalDateTime.now())
+                .modifiedAt(LocalDateTime.now())
                 .build();
         transactionRepository.save(customer);
         System.out.println("Transaction Save Successfully");

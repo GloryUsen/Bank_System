@@ -26,5 +26,11 @@ public class EmailDetailsDTO {
             name = "Context Of The Message"
     )
     private String subject;
-   // private String attachment;
+
+    @Schema(
+            name = "File Attached To The Email"
+    )
+    private String attachment;
+
+
 }
