@@ -1,22 +1,30 @@
 package com.Mbakara.Banking_System.serviceImpl;
 
+import com.Mbakara.Banking_System.config.JwtTokenProvider;
 import com.Mbakara.Banking_System.dto.*;
 import com.Mbakara.Banking_System.entity.CreateUser;
+import com.Mbakara.Banking_System.entity.Role;
 import com.Mbakara.Banking_System.repository.CreateUserRepository;
 import com.Mbakara.Banking_System.service.CreateUserService;
 import com.Mbakara.Banking_System.service.EmailService;
 import com.Mbakara.Banking_System.service.TransactionService;
 import com.Mbakara.Banking_System.util.AccountUtils;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
-import org.springframework.stereotype.Component;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-@Component
+@Service
+@AllArgsConstructor
 public class CreateUserServiceImpl implements CreateUserService {
 
     @Autowired
@@ -25,6 +33,15 @@ public class CreateUserServiceImpl implements CreateUserService {
 
     @Autowired
     TransactionService transactionService;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    JwtTokenProvider jwtTokenProvider;
 
     // Will need the mailService sender, here for the user, so it has to be autowired below.
     @Autowired
@@ -62,6 +79,7 @@ public class CreateUserServiceImpl implements CreateUserService {
                 .lastName(bankUserRequestDTO.getLastName())
                 .otherName(bankUserRequestDTO.getOtherName())
                 .email(bankUserRequestDTO.getEmail())
+                .password(passwordEncoder.encode(bankUserRequestDTO.getPassword()))
                 .address(bankUserRequestDTO.getAddress())
                 .gender(bankUserRequestDTO.getGender())
                 .phoneNumber(bankUserRequestDTO.getPhoneNumber())
@@ -70,6 +88,7 @@ public class CreateUserServiceImpl implements CreateUserService {
                 .accountNumber(AccountUtils.generateAccountNumber())
                 .accountBalance(BigDecimal.ZERO)
                 .status("ACTIVE")
+                .role(Role.valueOf("ROLE_ADMIN"))
                 .build();
 
         CreateUser saveUser = createUserRepository.save(newUser);
@@ -107,7 +126,26 @@ public class CreateUserServiceImpl implements CreateUserService {
                         .accountName(saveUser.getFirstName() + saveUser.getLastName() + saveUser.getOtherName())
                         .build())
                 .build();
+    }
 
+
+    public UserBankResponseDTO loginUser(LoginDTO loginDTO){
+        Authentication authentication = null;
+        authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
+        );
+
+        EmailDetailsDTO loginAlert = EmailDetailsDTO.builder()
+                .subject("You're logged in!")
+                .recipient(loginDTO.getEmail())
+                .messageBody("You logged into your account. If you did not initiate this request, Kindly contact your bank")
+                .build();
+
+        emailService.sendEmailAlert(loginAlert);
+        return UserBankResponseDTO.builder()
+                .responseCode("Login Successful")
+                .responseMessage(jwtTokenProvider.generateToken(authentication))
+                .build();
     }
 
     @Override
@@ -513,6 +551,8 @@ public class CreateUserServiceImpl implements CreateUserService {
                 .accountInfo(null)
                 .build();
     }
+
+
 }
 
 

@@ -4,9 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 
 // These Entity fields take charge of data that are going to be saved to the database
 
@@ -18,7 +23,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "bank_users")
 
-public class CreateUser {
+public class CreateUser implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +35,12 @@ public class CreateUser {
     private String gender;
     private String address;
     private String email;
+    private String password; // This password will be encrypted
     private String status;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     private String stateOfOrigin;
     private String accountNumber;
     private BigDecimal accountBalance;
@@ -44,5 +54,38 @@ public class CreateUser {
     private LocalDateTime modifiedAt;
 
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
+    }
 
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

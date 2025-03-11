@@ -40,6 +40,11 @@ public class CreateUserController {
 
     }
 
+    @PostMapping("/login")
+    public UserBankResponseDTO loginUser(@RequestBody LoginDTO loginDTO){
+        return createUserService.loginUser(loginDTO);
+    }
+
     @Operation(
             summary = "Balance Enquiry",
             description = "Given An Account Number, Check How Much The User Has"

@@ -35,6 +35,12 @@ public class BankUserRequestDTO {
             name = "User's Email"
     )
     private String email;
+
+    @Schema(
+            name = "User's Password"
+    )
+    private String password;
+
     @Schema(
             name = "User's Address"
     )
