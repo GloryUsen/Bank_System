@@ -2,10 +2,10 @@ package com.Mbakara.Banking_System.serviceImpl;
 
 import com.Mbakara.Banking_System.config.JwtTokenProvider;
 import com.Mbakara.Banking_System.dto.*;
-import com.Mbakara.Banking_System.entity.CreateUser;
+import com.Mbakara.Banking_System.entity.BankCustomers;
 import com.Mbakara.Banking_System.entity.Role;
-import com.Mbakara.Banking_System.repository.CreateUserRepository;
-import com.Mbakara.Banking_System.service.CreateUserService;
+import com.Mbakara.Banking_System.repository.BankCustomersRepository;
+import com.Mbakara.Banking_System.service.BankCustomersService;
 import com.Mbakara.Banking_System.service.EmailService;
 import com.Mbakara.Banking_System.service.TransactionService;
 import com.Mbakara.Banking_System.util.AccountUtils;
@@ -25,14 +25,15 @@ import java.math.BigInteger;
 
 @Service
 @AllArgsConstructor
-public class CreateUserServiceImpl implements CreateUserService {
+public class BankCustomersServiceImpl implements BankCustomersService {
 
     @Autowired
-    CreateUserRepository createUserRepository;
+    BankCustomersRepository createUserRepository;
 
 
     @Autowired
     TransactionService transactionService;
+
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -74,7 +75,7 @@ public class CreateUserServiceImpl implements CreateUserService {
 
          */
 
-        CreateUser newUser = CreateUser.builder()
+        BankCustomers newUser = BankCustomers.builder()
                 .firstName(bankUserRequestDTO.getFirstName())
                 .lastName(bankUserRequestDTO.getLastName())
                 .otherName(bankUserRequestDTO.getOtherName())
@@ -91,7 +92,7 @@ public class CreateUserServiceImpl implements CreateUserService {
                 .role(Role.valueOf("ROLE_ADMIN"))
                 .build();
 
-        CreateUser saveUser = createUserRepository.save(newUser);
+        BankCustomers saveUser = createUserRepository.save(newUser);
 
         /** After creating a newUer and saving the user,
          * I'm calling the method of emailSender Alert. So to send emailAlert
@@ -159,7 +160,7 @@ public class CreateUserServiceImpl implements CreateUserService {
                     .build();
         }
 
-        CreateUser foundUser = createUserRepository.findByAccountNumber(requestDTO.getAccountNumber());
+        BankCustomers foundUser = createUserRepository.findByAccountNumber(requestDTO.getAccountNumber());
         return UserBankResponseDTO.builder()
                 .responseCode(AccountUtils.ACCOUNT_FOUND_CODE)
                 .responseMessage(AccountUtils.ACCOUNT_FOUND_SUCCESS)
@@ -177,7 +178,7 @@ public class CreateUserServiceImpl implements CreateUserService {
            return AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE;
        }
 
-        CreateUser foundUser = createUserRepository.findByAccountNumber(request.getAccountNumber());
+        BankCustomers foundUser = createUserRepository.findByAccountNumber(request.getAccountNumber());
        return foundUser.getFirstName() + " " + foundUser.getLastName() + " " + foundUser.getOtherName();
     }
 
@@ -197,7 +198,7 @@ public class CreateUserServiceImpl implements CreateUserService {
          *  Next thing will be to update the information of the user.
          */
 
-        CreateUser userToCredit = createUserRepository.findByAccountNumber(request.getAccountNumber());
+        BankCustomers userToCredit = createUserRepository.findByAccountNumber(request.getAccountNumber());
         userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(request.getAmount()));
         createUserRepository.save(userToCredit);
 
@@ -237,7 +238,7 @@ public class CreateUserServiceImpl implements CreateUserService {
                     .build();
         }
 
-        CreateUser userToDebit = createUserRepository.findByAccountNumber(request.getAccountNumber());
+        BankCustomers userToDebit = createUserRepository.findByAccountNumber(request.getAccountNumber());
         BigInteger availableBalance = userToDebit.getAccountBalance().toBigInteger();
         BigInteger debitAmount = request.getAmount().toBigInteger();
         if (availableBalance.intValue() < debitAmount.intValue()){
@@ -466,7 +467,7 @@ public class CreateUserServiceImpl implements CreateUserService {
     public UserBankResponseDTO transferCash(TransferRequestDTO request) {
 
         // Check if destination account exists
-        CreateUser destinationAccount = createUserRepository.findByAccountNumber(request.getDestinationAccountNumber());
+        BankCustomers destinationAccount = createUserRepository.findByAccountNumber(request.getDestinationAccountNumber());
         if (destinationAccount == null) {
             return UserBankResponseDTO.builder()
                     .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
@@ -476,7 +477,7 @@ public class CreateUserServiceImpl implements CreateUserService {
         }
 
         // Check if source account exists
-        CreateUser sourceAccount = createUserRepository.findByAccountNumber(request.getSourceAccountNumber());
+        BankCustomers sourceAccount = createUserRepository.findByAccountNumber(request.getSourceAccountNumber());
         if (sourceAccount == null) {
             return UserBankResponseDTO.builder()
                     .responseCode(AccountUtils.SOURCE_ACCOUNT_NOT_EXISTS_CODE)  // Fixed incorrect response code
@@ -551,6 +552,7 @@ public class CreateUserServiceImpl implements CreateUserService {
                 .accountInfo(null)
                 .build();
     }
+
 
 
 }

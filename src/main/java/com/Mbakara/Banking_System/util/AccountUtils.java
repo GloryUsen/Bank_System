@@ -23,8 +23,20 @@ public class AccountUtils {
     public static final String TRANSFER_SUCCESS_MESSAGE = " Transfer Successful";
     public static final String SOURCE_ACCOUNT_NOT_EXISTS_CODE = "009";
     public static final String SOURCE_ACCOUNT_NOT_EXISTS_MESSAGE = "Sender's Account Not Found";
-    public static final String BALANCE_AFTER_DEDUCTION_CODE = "010";
-    public static final String BALANCE_AFTER_DEDUCTION_MESSAGE = "011";
+    public static final String LOAN_ALREADY_EXISTS_CODE = "010";
+    public static final String LOAN_ALREADY_EXISTS_MESSAGE = "Oops! You already have an active loan. Clear loan before applying for a new one. Need help? Contact our support team!";
+    public static final String INVALID_LOAN_AMOUNT_CODE = "011";
+    public static final String INVALID_LOAN_AMOUNT_MESSAGE = "Invalid loan request! Please enter a valid loan amount. We're here to help you achieve your financial goals!";
+    public static final String LOAN_APPROVAL_CODE = "012";
+    public static final String LOAN_APPROVAL_MESSAGE = "Congratulations! Your loan has been approved";
+    public static final String NO_ACTIVE_LOAN_CODE = "013";
+    public static final String NO_ACTIVE_LOAN_MESSAGE = "You currently have no active loan loan linked to your account. If you need any financial support, feel free to apply for a loan today and take control of your finances!";
+    public static final String INVALID_REPAYMENT_AMOUNT_CODE = "014";
+    public static final String INVALID_REPAYMENT_AMOUNT_MESSAGE = "Invalid repayment amount! Please enter a valid amount between 1 and your outstanding loan balance. Need assistance? Contact our support team!";
+    public static final String LOAN_REPAID_SUCCESS_CODE = "015";
+    public static final String LOAN_REPAID_SUCCESS_MESSAGE = "Payment successful! You have successfully repaid your loan";
+
+
 
 
 

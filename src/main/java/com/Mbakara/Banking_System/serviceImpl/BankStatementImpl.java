@@ -1,9 +1,9 @@
 package com.Mbakara.Banking_System.serviceImpl;
 
 import com.Mbakara.Banking_System.dto.EmailDetailsDTO;
-import com.Mbakara.Banking_System.entity.CreateUser;
+import com.Mbakara.Banking_System.entity.BankCustomers;
 import com.Mbakara.Banking_System.entity.CustomerTransactions;
-import com.Mbakara.Banking_System.repository.CreateUserRepository;
+import com.Mbakara.Banking_System.repository.BankCustomersRepository;
 import com.Mbakara.Banking_System.repository.TransactionRepository;
 import com.Mbakara.Banking_System.service.BankStatementService;
 import com.Mbakara.Banking_System.service.EmailService;
@@ -37,7 +37,7 @@ public class BankStatementImpl implements BankStatementService {
 
 
     private final TransactionRepository transactionRepository;
-    private final CreateUserRepository createUserRepository;
+    private final BankCustomersRepository createUserRepository;
     private final EmailService emailService;
 
 
@@ -93,7 +93,7 @@ public class BankStatementImpl implements BankStatementService {
         log.info("Found {} transactions", transactionsList.size());
 
         // Finding Account Number to be able to get the number for a particular account.
-        CreateUser user = createUserRepository.findByAccountNumber(accountNumber); // Finding accountNo.
+        BankCustomers user = createUserRepository.findByAccountNumber(accountNumber); // Finding accountNo.
         String customerName = user.getFirstName() + " " + user.getLastName() + " " +  user.getOtherName();
 
         Rectangle statementSize = new Rectangle(PageSize.A4);

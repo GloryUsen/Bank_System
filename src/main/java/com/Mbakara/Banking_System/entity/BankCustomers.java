@@ -21,9 +21,9 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "bank_users")
+@Table(name = "customer")
 
-public class CreateUser implements UserDetails {
+public class BankCustomers implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

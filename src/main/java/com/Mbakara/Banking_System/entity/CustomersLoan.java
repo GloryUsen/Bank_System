@@ -3,31 +3,31 @@ package com.Mbakara.Banking_System.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
 @Entity
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "transactions")
+@Table(name = "loan")
 
-public class CustomerTransactions {
+
+public class CustomersLoan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    private String transactionId;
-    private String transactionType;
-    private BigDecimal amount;
+    private Long id;
     private String accountNumber;
-    private String status;
+    private BigDecimal amountBorrowed;
+    private BigDecimal totalAmountRepayment;
+    private BigDecimal balanceToPay;
     @CreationTimestamp
-    private LocalDateTime createdAt;
-    @UpdateTimestamp
-    private LocalDateTime modifiedAt;
+    private LocalDateTime dueDate;
+
+    private String status;
 }

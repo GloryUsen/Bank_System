@@ -1,7 +1,7 @@
 package com.Mbakara.Banking_System.controller;
 
 import com.Mbakara.Banking_System.dto.*;
-import com.Mbakara.Banking_System.service.CreateUserService;
+import com.Mbakara.Banking_System.service.BankCustomersService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 @RequestMapping("/api/user")
 @Tag(name = "Users Account Management APIs")
-public class CreateUserController {
+public class CustomersController {
 
     @Autowired
-     CreateUserService createUserService;
+    BankCustomersService createUserService;
 
 //    @Autowired
 //    CreditDebitRequestDTO creditDebitRequestDTO;

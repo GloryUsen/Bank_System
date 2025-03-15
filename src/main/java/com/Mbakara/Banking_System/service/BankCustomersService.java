@@ -1,11 +1,10 @@
 package com.Mbakara.Banking_System.service;
 
 import com.Mbakara.Banking_System.dto.*;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 @Service
-public interface CreateUserService {
+public interface BankCustomersService {
 
     UserBankResponseDTO creatAccount(BankUserRequestDTO bankUserRequestDTO);
 
