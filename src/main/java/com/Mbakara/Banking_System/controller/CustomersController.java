@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,7 +18,8 @@ import org.springframework.web.bind.annotation.*;
 public class CustomersController {
 
     @Autowired
-    BankCustomersService createUserService;
+    BankCustomersService bankCustomersService;
+    @Qualifier("bankCustomersService")
 
 //    @Autowired
 //    CreditDebitRequestDTO creditDebitRequestDTO;
@@ -36,13 +39,13 @@ public class CustomersController {
     @PostMapping("/createAccount")
     public UserBankResponseDTO createAccount(@RequestBody BankUserRequestDTO request){
         //System.out.println("hello world");
-        return createUserService.creatAccount(request);
+        return bankCustomersService.creatAccount(request);
 
     }
 
     @PostMapping("/login")
     public UserBankResponseDTO loginUser(@RequestBody LoginDTO loginDTO){
-        return createUserService.loginUser(loginDTO);
+        return bankCustomersService.loginUser(loginDTO);
     }
 
     @Operation(
@@ -59,7 +62,7 @@ public class CustomersController {
 
     @GetMapping("/balanceEnquiry")
     public UserBankResponseDTO balanceEnquiry(@RequestBody CustomerEnquiryRequestDTO request){
-        return createUserService.balanceEnquiry(request);
+        return bankCustomersService.balanceEnquiry(request);
 
     }
 
@@ -75,7 +78,7 @@ public class CustomersController {
 
     @GetMapping("/nameEnquiry")
     public String nameEnquiry(@RequestBody CustomerEnquiryRequestDTO request){
-        return createUserService.nameEnquiry(request);
+        return bankCustomersService.nameEnquiry(request);
     }
 
     @Operation(
@@ -90,7 +93,7 @@ public class CustomersController {
 
     @PostMapping("credit")
     public UserBankResponseDTO creditAccount(@RequestBody CreditDebitRequestDTO request){
-        return createUserService.creditAccount(request);
+        return bankCustomersService.creditAccount(request);
     }
 
     @Operation(
@@ -105,7 +108,7 @@ public class CustomersController {
 
     @PostMapping("debit")
     public UserBankResponseDTO debitAccount(@RequestBody CreditDebitRequestDTO request){
-        return createUserService.debitAccount(request);
+        return bankCustomersService.debitAccount(request);
     }
 
     @Operation(
@@ -120,7 +123,14 @@ public class CustomersController {
 
     @PostMapping("transfer")
     public UserBankResponseDTO transferCash(@RequestBody TransferRequestDTO request){
-        return createUserService.transferCash(request);
+        return bankCustomersService.transferCash(request);
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity<AccountDeletionResponseDTO> deleteAccount(AccountDeletionRequestDTO request){
+        AccountDeletionResponseDTO response = bankCustomersService.deleteAccount(request);
+        return ResponseEntity.ok(response);
+        // Why is this endpoint not like the rest here?
     }
 
 

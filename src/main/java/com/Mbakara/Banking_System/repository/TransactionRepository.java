@@ -12,4 +12,7 @@ public interface TransactionRepository extends JpaRepository<CustomerTransaction
     List<CustomerTransactions> findByAccountNumberAndCreatedAtBetween(String accountNumber,
                                                                       LocalDateTime starDate,
                                                                       LocalDateTime endDate);
+   // void deleteByAccountNumber(String accountNumber);
+   void deleteByAccountNumber(String accountNumber);
+
 }

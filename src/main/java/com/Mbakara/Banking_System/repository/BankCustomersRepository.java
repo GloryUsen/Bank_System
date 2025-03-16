@@ -17,7 +17,7 @@ public interface BankCustomersRepository extends JpaRepository<BankCustomers, Lo
     Optional<BankCustomers> findByEmail(String email);
     Boolean existsByAccountNumber(String accountNumber);
     BankCustomers findByAccountNumber(String accountNumber);
-    //Optional<CreateUser> findByUsername(String username);
+   // Optional<BankCustomers> findByAccountNumber(String accountNumber);
 
 
 }

@@ -35,6 +35,12 @@ public class AccountUtils {
     public static final String INVALID_REPAYMENT_AMOUNT_MESSAGE = "Invalid repayment amount! Please enter a valid amount between 1 and your outstanding loan balance. Need assistance? Contact our support team!";
     public static final String LOAN_REPAID_SUCCESS_CODE = "015";
     public static final String LOAN_REPAID_SUCCESS_MESSAGE = "Payment successful! You have successfully repaid your loan";
+    public static final String INVALID_CREDENTIALS_CODE = "016";
+    public static final String INVALID_CREDENTIALS_MESSAGE = "Incorrect password. Account deletion failed.";
+    public static final String ACTIVE_LOAN_CODE = "017";
+    public static final String ACTIVE_LOAN_MESSAGE = "Account deletion fail: You have an active loan that must be repaid before deleting your account.";
+    public static final String ACCOUNT_DELETION_SUCCESS_CODE = "018";
+    public static final String ACCOUNT_DELETION_SUCCESS_MESSAGE = "Your account has been successfully deleted.";
 
 
 
