@@ -14,19 +14,13 @@ import lombok.NoArgsConstructor;
 
 public class UserBankResponseDTO {
 
-    @Schema(
-            name = "Status code"
-    )
+
 
     private String responseCode;
 
-    @Schema(
-            name = "Message Body"
-    )
+
     private String responseMessage;
 
-    @Schema(
-            name = "user's Information"
-    )
+
     private AccountInfo accountInfo;
 }

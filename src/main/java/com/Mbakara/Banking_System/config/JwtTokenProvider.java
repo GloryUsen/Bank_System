@@ -27,6 +27,7 @@ public class JwtTokenProvider {
         String username = authentication.getName();
         Date currentDate = new Date(); // This generates the current date at that particular moment.
         Date expirationDate = new Date(currentDate.getTime() + jwtExpirationDate);
+
         return Jwts.builder()
                 .setSubject(username) // Encrypted the username
                 .setIssuedAt(currentDate)
@@ -46,10 +47,16 @@ public class JwtTokenProvider {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+        System.out.println("Token Claims: " + claims);
         return claims.getSubject();
     }
 
     public boolean validateToken(String token){
+
+        // JWT handling null or empty tokens
+        if (token == null || token.trim().isEmpty()){
+            throw new IllegalArgumentException("JWT token cannot be null or empty.");
+        }
         try {
             Jwts.parserBuilder()
                     .setSigningKey(Key())

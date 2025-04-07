@@ -55,16 +55,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**  So here every single request will carry a Bearer with the Token.
      */
-    private String getTokenFromRequest(HttpServletRequest request){
+    //private String getTokenFromRequest(HttpServletRequest request){
+//        String bearerToken = request.getHeader("Authorization");
+//
+//        // Check if the text is empty
+//        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")){
+//            return bearerToken.substring(7 );
+//        }
+//
+//
+//        return null;
+//    }
+
+
+        private String getTokenFromRequest(HttpServletRequest request){
+
         String bearerToken = request.getHeader("Authorization");
 
-        // Check if the text is empty
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")){
-            return bearerToken.substring(7 );
+        // Check if the Authorization header is missing or does not start with "Bearer"
+        if(bearerToken == null || !bearerToken.startsWith("Bearer ")){
+            return  null; // This returns null if no valid token is found.
         }
 
-
-        return null;
+        // Extract the actual Token (remove "Bearer " prefix)
+        String token = bearerToken.substring(7).trim();
+        //Ensure the extracted token is not empty
+        return token.isEmpty() ? null : token;
     }
 
 }

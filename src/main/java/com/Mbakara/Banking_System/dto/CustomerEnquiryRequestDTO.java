@@ -13,8 +13,5 @@ import lombok.NoArgsConstructor;
 
 public class CustomerEnquiryRequestDTO {
 
-    @Schema(
-            name = "User's accountNumber"
-    )
     private String accountNumber;
 }

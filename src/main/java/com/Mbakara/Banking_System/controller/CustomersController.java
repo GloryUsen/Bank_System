@@ -2,12 +2,15 @@ package com.Mbakara.Banking_System.controller;
 
 import com.Mbakara.Banking_System.dto.*;
 import com.Mbakara.Banking_System.service.BankCustomersService;
+import com.Mbakara.Banking_System.util.AccountUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,7 @@ public class CustomersController {
 
     @Autowired
     BankCustomersService bankCustomersService;
+
     @Qualifier("bankCustomersService")
 
 //    @Autowired
@@ -44,8 +48,9 @@ public class CustomersController {
     }
 
     @PostMapping("/login")
-    public UserBankResponseDTO loginUser(@RequestBody LoginDTO loginDTO){
-        return bankCustomersService.loginUser(loginDTO);
+    public ResponseEntity<APIResponse> loginUser(@RequestBody LoginDTO loginDTO){
+        LoginResponse loginResponse = bankCustomersService.loginUser(loginDTO);
+        return ResponseEntity.ok(new APIResponse(AccountUtils.OPERATION_SUCCESS_CODE,  "Login Successful", true, loginResponse));
     }
 
     @Operation(
@@ -60,78 +65,34 @@ public class CustomersController {
 
     )
 
-    @GetMapping("/balanceEnquiry")
-    public UserBankResponseDTO balanceEnquiry(@RequestBody CustomerEnquiryRequestDTO request){
-        return bankCustomersService.balanceEnquiry(request);
+    @GetMapping("/balanceEnquiry/{accountNumber}")
+    public ResponseEntity<APIResponse> balanceEnquiry(@PathVariable String accountNumber){
+        AccountInfo info = bankCustomersService.balanceEnquiry(accountNumber);
+        return ResponseEntity.ok(new APIResponse(AccountUtils.OPERATION_SUCCESS_CODE, "Account Info Retrieved Successful", true, info));
 
     }
 
-    @Operation(
-            summary = "Name Enquiry",
-            description = "Confirm a User's name before Transaction"
-    )
+//    @Operation(
+//            summary = "Name Enquiry",
+//            description = "Confirm a User's name before Transaction"
+//    )
+//
+//    @ApiResponse(
+//            responseCode = "200",
+//            description = "Http status 200 SUCCESS"
+//    )
 
-    @ApiResponse(
-            responseCode = "200",
-            description = "Http status 200 SUCCESS"
-    )
+//    @GetMapping("/nameEnquiry/{accountNumber}")
+//    public String nameEnquiry(@PathVariable String accountNumber){
+//        return bankCustomersService.nameEnquiry(accountNumber);
+//    }
 
-    @GetMapping("/nameEnquiry")
-    public String nameEnquiry(@RequestBody CustomerEnquiryRequestDTO request){
-        return bankCustomersService.nameEnquiry(request);
+    @GetMapping("/name_Enquiry{accountNumber}")
+    public ResponseEntity<APIResponse> nameEnquiry(@PathVariable String accountNumber){
+        AccountInfo response = bankCustomersService.nameEnquiry(accountNumber);
+        return ResponseEntity.ok(new APIResponse(AccountUtils.OPERATION_SUCCESS_CODE, "Account Info Retrieved Successful", true, response));
     }
 
-    @Operation(
-            summary = "Credit An Account",
-            description = "Creating A User Account After Deposit"
-    )
-
-    @ApiResponse(
-            responseCode = "201",
-            description = "Http status 201 Account Credited"
-    )
-
-    @PostMapping("credit")
-    public UserBankResponseDTO creditAccount(@RequestBody CreditDebitRequestDTO request){
-        return bankCustomersService.creditAccount(request);
-    }
-
-    @Operation(
-            summary = "Debiting An Account",
-            description = "Deduction Of Money From The User's Account"
-    )
-
-    @ApiResponse(
-            responseCode = "200",
-            description = "Http status 200 Account Debited"
-    )
-
-    @PostMapping("debit")
-    public UserBankResponseDTO debitAccount(@RequestBody CreditDebitRequestDTO request){
-        return bankCustomersService.debitAccount(request);
-    }
-
-    @Operation(
-            summary = "Transferring Fund",
-            description = "Moving Funds From One Account To Another"
-    )
-
-    @ApiResponse(
-            responseCode = "200",
-            description = "Http status 200 Transfer Successful"
-    )
-
-    @PostMapping("transfer")
-    public UserBankResponseDTO transferCash(@RequestBody TransferRequestDTO request){
-        return bankCustomersService.transferCash(request);
-    }
-
-    @PostMapping("/delete")
-    public ResponseEntity<AccountDeletionResponseDTO> deleteAccount(AccountDeletionRequestDTO request){
-        AccountDeletionResponseDTO response = bankCustomersService.deleteAccount(request);
-        return ResponseEntity.ok(response);
-        // Why is this endpoint not like the rest here?
-    }
 
 
 

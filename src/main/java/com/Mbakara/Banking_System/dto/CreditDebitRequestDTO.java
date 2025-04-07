@@ -14,13 +14,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 
 public class CreditDebitRequestDTO {
-    @Schema(
-            name = "User's AccountNumber"
-    )
+
     private String accountNumber;
 
-    @Schema(
-            name = "Amount To Update"
-    )
     private BigDecimal amount;
 }

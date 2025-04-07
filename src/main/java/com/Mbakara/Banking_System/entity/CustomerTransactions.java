@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class CustomerTransactions {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
 
     private String transactionId;
     private String transactionType;

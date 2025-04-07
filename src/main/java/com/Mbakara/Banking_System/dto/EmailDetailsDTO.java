@@ -12,24 +12,16 @@ import lombok.NoArgsConstructor;
 @Builder
 
 public class EmailDetailsDTO {
-    @Schema(
-            name = "Recipient To receive"
-    )
+
     private String recipient;
 
-    @Schema(
-            name = "Message Body"
-    )
+
     private String messageBody;
 
-    @Schema(
-            name = "Context Of The Message"
-    )
+
     private String subject;
 
-    @Schema(
-            name = "File Attached To The Email"
-    )
+
     private String attachment;
 
 

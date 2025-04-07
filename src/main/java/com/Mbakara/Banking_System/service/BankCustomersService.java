@@ -1,7 +1,6 @@
 package com.Mbakara.Banking_System.service;
 
 import com.Mbakara.Banking_System.dto.*;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,13 +10,14 @@ public interface BankCustomersService {
 
 
     // Balance Enquiry gives information about the user.
-    UserBankResponseDTO balanceEnquiry(CustomerEnquiryRequestDTO customerEnquiryRequestDTO);
-    String nameEnquiry(CustomerEnquiryRequestDTO request);
+    AccountInfo balanceEnquiry(String accountNumber);
+    AccountInfo nameEnquiry(String accountNumber);
     UserBankResponseDTO creditAccount(CreditDebitRequestDTO request);
     UserBankResponseDTO debitAccount(CreditDebitRequestDTO request);
     UserBankResponseDTO transferCash(TransferRequestDTO request);
-    UserBankResponseDTO loginUser(LoginDTO request);
+    LoginResponse loginUser(LoginDTO request);
     AccountDeletionResponseDTO deleteAccount(AccountDeletionRequestDTO request);
+
 
 
 }

@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -49,6 +50,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
+
     // White listing the signUp endpoint and LoginEndpoint with Configuration(like no sort of Authentication)
 //    @Bean
 //    SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -57,20 +59,43 @@ public class SecurityConfig {
 //                        authorize.requestMatchers(HttpMethod.POST, "/api/user").permitAll()
 //                                .anyRequest().authenticated());
 
+
+//    SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+//        httpSecurity
+//                   // CSRF is disabled
+//                .authorizeHttpRequests(authorize ->
+//                        authorize.requestMatchers(HttpMethod.POST, "/api/user/createAccount").permitAll()
+//                                .requestMatchers(HttpMethod.POST, "/api/user/login").permitAll()
+//                               // .anyRequest().permitAll()); // Allow all requests for testing
+//                                       .requestMatchers(HttpMethod.GET, "/api/user/public-endpoint").permitAll()
+//                                        .anyRequest().authenticated());
+////                .build();
+//   // }
+//        httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+//        httpSecurity.authenticationProvider(authenticationProvider());
+//        httpSecurity.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//        return httpSecurity.build();
+//    }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                   // CSRF is disabled
+                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for API requests
                 .authorizeHttpRequests(authorize ->
-                        authorize.requestMatchers(HttpMethod.POST, "/api/user/createAccount").permitAll()
+                        authorize
+                                .requestMatchers("/swagger-ui/**","/v3/api-docs/**","/swagger-ui.html").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/user/createAccount").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/user/login").permitAll()
-                                .anyRequest().permitAll()); // Allow all requests for testing
-//                .build();
-   // }
-        httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        httpSecurity.authenticationProvider(authenticationProvider());
-        httpSecurity.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                               // .requestMatchers(HttpMethod.GET, "/api/user/public-endpoint").permitAll()
+                               // .requestMatchers(HttpMethod.GET, "/api/user/nameEnquiry").permitAll()
+                                .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return httpSecurity.build();
     }
+
 
 }

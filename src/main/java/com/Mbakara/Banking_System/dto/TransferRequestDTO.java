@@ -16,18 +16,12 @@ import java.math.BigDecimal;
 
 public class TransferRequestDTO {
 
-    @Schema(
-            name = "SourceAccountNumber"
-    )
+
     private String sourceAccountNumber;
 
-    @Schema(
-            name = "Destination For Transaction"
-    )
+
     private String destinationAccountNumber;
 
-    @Schema(
-            name = "Amount For Transaction"
-    )
+
     private BigDecimal amount;
 }

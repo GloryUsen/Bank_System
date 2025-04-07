@@ -16,54 +16,33 @@ import lombok.NoArgsConstructor;
 
 public class BankUserRequestDTO {
 
-    @Schema(
-            name = "User's Firstname"
-    )
+
     private String firstName;
 
-    @Schema(
-            name = "User's Lastname"
-    )
+
     private String lastName;
 
-    @Schema(
-            name = "User's OtherName"
-    )
+
     private String otherName;
 
-    @Schema(
-            name = "User's Email"
-    )
+
     private String email;
 
-    @Schema(
-            name = "User's Password"
-    )
+
     private String password;
 
-    @Schema(
-            name = "User's Address"
-    )
+
     private String address;
 
-    @Schema(
-            name = "User's Gender"
-    )
+
     private String gender;
 
-    @Schema(
-            name = "User's PhoneNumber"
-    )
+
     private String phoneNumber;
 
-    @Schema(
-            name = "User's StateOfOrigin"
-    )
+
     private String stateOfOrigin;
 
-    @Schema(
-            name = "User's AlternativePhoneNumber"
-    )
     private String alternativePhoneNumber;
 
 }

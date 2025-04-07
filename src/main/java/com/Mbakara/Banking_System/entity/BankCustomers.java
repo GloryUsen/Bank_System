@@ -21,7 +21,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "customer")
+@Table(name = "bankCustomers")
 
 public class BankCustomers implements UserDetails {
 
@@ -37,6 +37,7 @@ public class BankCustomers implements UserDetails {
     private String email;
     private String password; // This password will be encrypted
     private String status;
+    private Boolean isDeleted;
 
     @Enumerated(EnumType.STRING)
     private Role role;

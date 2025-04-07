@@ -4,6 +4,7 @@ import com.Mbakara.Banking_System.config.JwtTokenProvider;
 import com.Mbakara.Banking_System.dto.*;
 import com.Mbakara.Banking_System.entity.BankCustomers;
 import com.Mbakara.Banking_System.entity.Role;
+import com.Mbakara.Banking_System.exception.AccountNotFoundException;
 import com.Mbakara.Banking_System.repository.BankCustomersRepository;
 import com.Mbakara.Banking_System.repository.LoanRepository;
 import com.Mbakara.Banking_System.repository.TransactionRepository;
@@ -18,6 +19,7 @@ import org.springframework.mail.MailException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -98,7 +100,7 @@ public class BankCustomersServiceImpl implements BankCustomersService {
                 .accountNumber(AccountUtils.generateAccountNumber())
                 .accountBalance(BigDecimal.ZERO)
                 .status("ACTIVE")
-                .role(Role.valueOf("ROLE_ADMIN"))
+                .role(Role.USER)
                 .build();
 
         BankCustomers saveUser = bankCustomersRepository.save(newUser);
@@ -139,7 +141,8 @@ public class BankCustomersServiceImpl implements BankCustomersService {
     }
 
 
-    public UserBankResponseDTO loginUser(LoginDTO loginDTO){
+    @Override
+    public LoginResponse loginUser(LoginDTO loginDTO){
         Authentication authentication = null;
         authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
@@ -152,9 +155,9 @@ public class BankCustomersServiceImpl implements BankCustomersService {
                 .build();
 
         emailService.sendEmailAlert(loginAlert);
-        return UserBankResponseDTO.builder()
-                .responseCode("Login Successful")
-                .responseMessage(jwtTokenProvider.generateToken(authentication))
+        return LoginResponse.builder()
+                .email(loginDTO.getEmail())
+                .accessToken(jwtTokenProvider.generateToken(authentication))
                 .build();
     }
 
@@ -163,89 +166,95 @@ public class BankCustomersServiceImpl implements BankCustomersService {
     @Transactional
     public AccountDeletionResponseDTO deleteAccount(AccountDeletionRequestDTO request) {
 
-        // Fetching a user directly (will return null if the user does not found)
-        BankCustomers checkUser = bankCustomersRepository.findByAccountNumber(request.getAccountNumber());
-
-        // This Handles case where a user does not exist.
-        if (checkUser == null) {
+        // Checking if Customer exist
+        boolean customerExists = bankCustomersRepository.existsByAccountNumber(request.getAccountNumber());
+        if (!customerExists){
             return AccountDeletionResponseDTO.builder()
-                    .responseCode(AccountUtils.ACCOUNT_EXIST_CODE)
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
                     .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
                     .build();
         }
 
-        // Verifying the password before deletion
-        if (!passwordEncoder.matches(request.getPassword(), checkUser.getPassword())) {
+        // Fetching a Customer
+        BankCustomers existingCustomer = bankCustomersRepository.findByAccountNumber(request.getAccountNumber());
+
+        // Verify Password before proceeding
+        if (!passwordEncoder.matches(request.getPassword(), existingCustomer.getPassword())){
             return AccountDeletionResponseDTO.builder()
                     .responseCode(AccountUtils.INVALID_CREDENTIALS_CODE)
                     .responseMessage(AccountUtils.INVALID_CREDENTIALS_MESSAGE)
                     .build();
         }
 
-
-        // Checking if the user still has an active loan.
-        if (loanRepository.existsByAccountNumberAndStatus(request.getAccountNumber(), "ACTIVE")) {
+        // Checking if the Customer has an active loan
+        if (loanRepository.existsByAccountNumberAndStatus(request.getAccountNumber(), "ACTIVE")){
             return AccountDeletionResponseDTO.builder()
                     .responseCode(AccountUtils.ACTIVE_LOAN_CODE)
                     .responseMessage(AccountUtils.ACTIVE_LOAN_MESSAGE)
                     .build();
         }
-        // Delete related transactions.
-        transactionRepository.deleteByAccountNumber(request.getAccountNumber());
 
-        // Delete the user account
-        bankCustomersRepository.delete(checkUser);
+        // Mark account as in Active While stored in the Database
+        existingCustomer.setStatus("INACTIVE");
+        existingCustomer.setIsDeleted(true);
+        bankCustomersRepository.save(existingCustomer);
 
-        // Send An EmailAlert notification to the user
+        // Sending An Email Notification to the Customer
         emailService.sendEmailAlert(EmailDetailsDTO.builder()
-                        .recipient(checkUser.getEmail())
-                        .subject("Account Deletion Confirmation")
-                        .messageBody("Your account (Number: " + request.getAccountNumber() + ") has been permanently deleted.")
+                        .recipient(existingCustomer.getEmail())
+                        .subject("Account Deletion Processed ")
+                        .messageBody("Your account (Number: " + request.getAccountNumber() + ") has been deactivated successfully.")
                 .build());
-
 
         return AccountDeletionResponseDTO.builder()
                 .responseCode(AccountUtils.ACCOUNT_DELETION_SUCCESS_CODE)
                 .responseMessage(AccountUtils.ACCOUNT_DELETION_SUCCESS_MESSAGE)
                 .build();
+
     }
 
 
-
-
-
     @Override
-    public UserBankResponseDTO balanceEnquiry(CustomerEnquiryRequestDTO requestDTO) {
-        Boolean isAccountExist = bankCustomersRepository.existsByAccountNumber(requestDTO.getAccountNumber());
-        if (!isAccountExist){
-            return UserBankResponseDTO.builder()
-                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
-                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
-                    .accountInfo(null)
-                    .build();
+    public AccountInfo balanceEnquiry(String accountNumber) {
+       BankCustomers account = bankCustomersRepository.findByAccountNumber(accountNumber);
+
+        if (account == null || account.getAccountNumber() == null){
+             throw new AccountNotFoundException("Account not found ");
         }
 
-        BankCustomers foundUser = bankCustomersRepository.findByAccountNumber(requestDTO.getAccountNumber());
-        return UserBankResponseDTO.builder()
-                .responseCode(AccountUtils.ACCOUNT_FOUND_CODE)
-                .responseMessage(AccountUtils.ACCOUNT_FOUND_SUCCESS)
-                .accountInfo(AccountInfo.builder() // Trying to build acctEnquiry, so we return some few inform about the acct.
-                        .accountBalance(foundUser.getAccountBalance()) // This account balance will be getting from the found User.
-                        .accountNumber(requestDTO.getAccountNumber()) // Use same accountNo provided from line 114.
-                        .accountName(foundUser.getFirstName() + " " + foundUser.getLastName()+ " "+ foundUser.getOtherName())
-                        .build())
+       return AccountInfo.builder()
+               .accountName(account.getFirstName())
+               .accountNumber(account.getAccountNumber())
+               .accountBalance(account.getAccountBalance())
+               .build();
+    }
+
+//
+//    @Override
+//    public String nameEnquiry(String accountNumber) {
+//       boolean isAccountExist = bankCustomersRepository.existsByAccountNumber(accountNumber);
+//       if (!isAccountExist){
+//           return AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE;
+//       }
+//
+//        BankCustomers foundUser = bankCustomersRepository.findByAccountNumber(accountNumber);
+//       return foundUser.getFirstName() + " " + foundUser.getLastName() + " " + foundUser.getOtherName();
+//    }
+//
+
+
+    public AccountInfo nameEnquiry(String accountNumber){
+        BankCustomers customersName = bankCustomersRepository.findByAccountNumber(accountNumber);
+
+        if (customersName == null || customersName.getAccountNumber() == null){
+            throw new AccountNotFoundException("Account not found");
+        }
+
+        return AccountInfo.builder()
+                .accountNumber(customersName.getAccountNumber())
                 .build();
     }
-    @Override
-    public String nameEnquiry(CustomerEnquiryRequestDTO request) {
-       boolean isAccountExist = bankCustomersRepository.existsByAccountNumber(request.getAccountNumber());
-       if (!isAccountExist){
-           return AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE;
-       }
 
-        BankCustomers foundUser = bankCustomersRepository.findByAccountNumber(request.getAccountNumber());
-       return foundUser.getFirstName() + " " + foundUser.getLastName() + " " + foundUser.getOtherName();
-    }
 
     @Override
     public UserBankResponseDTO creditAccount(CreditDebitRequestDTO request) {
@@ -531,6 +540,34 @@ public class BankCustomersServiceImpl implements BankCustomersService {
     @Transactional
     public UserBankResponseDTO transferCash(TransferRequestDTO request) {
 
+
+
+        // Extract the Authenticated Customer from the SecurityContextHolder
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+       // String authenticatedEmail = jwtTokenProvider.getUsername(token);
+        String authenticatedEmail = auth.getName();
+
+
+        // Find the source Account
+        BankCustomers sourceAccount = bankCustomersRepository.findByAccountNumber(request.getSourceAccountNumber());
+        if (sourceAccount == null){
+            return UserBankResponseDTO.builder()
+                    .responseCode(AccountUtils.SOURCE_ACCOUNT_NOT_EXISTS_CODE)
+                    .responseMessage(AccountUtils.SOURCE_ACCOUNT_NOT_EXISTS_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+        // Ensure the authenticated user owns the source account
+        if (!sourceAccount.getEmail().equals(authenticatedEmail)){
+            return UserBankResponseDTO.builder()
+                    .responseCode("403")
+                    .responseMessage("Unauthorised:  You can only transfer from your own account")
+                    .accountInfo(null)
+                    .build();
+        }
+
         // Check if destination account exists
         BankCustomers destinationAccount = bankCustomersRepository.findByAccountNumber(request.getDestinationAccountNumber());
         if (destinationAccount == null) {
@@ -542,8 +579,8 @@ public class BankCustomersServiceImpl implements BankCustomersService {
         }
 
         // Check if source account exists
-        BankCustomers sourceAccount = bankCustomersRepository.findByAccountNumber(request.getSourceAccountNumber());
-        if (sourceAccount == null) {
+        BankCustomers sourceAccount1 = bankCustomersRepository.findByAccountNumber(request.getSourceAccountNumber());
+        if (sourceAccount1 == null) {
             return UserBankResponseDTO.builder()
                     .responseCode(AccountUtils.SOURCE_ACCOUNT_NOT_EXISTS_CODE)  // Fixed incorrect response code
                     .responseMessage(AccountUtils.SOURCE_ACCOUNT_NOT_EXISTS_MESSAGE)
@@ -584,7 +621,7 @@ public class BankCustomersServiceImpl implements BankCustomersService {
             System.err.println("Failed to send debit email. Continuing transaction...");
         }
 
-        //  Send credit alert email
+        //  Send credit alert email for crediting
         try {
             emailService.sendEmailAlert(EmailDetailsDTO.builder()
                     .recipient(destinationAccount.getEmail())

@@ -41,6 +41,8 @@ public class AccountUtils {
     public static final String ACTIVE_LOAN_MESSAGE = "Account deletion fail: You have an active loan that must be repaid before deleting your account.";
     public static final String ACCOUNT_DELETION_SUCCESS_CODE = "018";
     public static final String ACCOUNT_DELETION_SUCCESS_MESSAGE = "Your account has been successfully deleted.";
+    public static final String OPERATION_SUCCESS_CODE = "000";
+    //public static
 
 
 
